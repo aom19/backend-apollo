@@ -20,8 +20,6 @@ app.use(
 mongoose
   .connect(
     `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.ku5rn.mongodb.net/${process.env.MONGO_NAME}?retryWrites=true&w=majority`
-    // `mongodb+srv://Anton:X09NKnZxyXOSIXxH@cluster0.ku5rn.mongodb.net/AtlasFreight?retryWrites=true&w=majority`
-    // `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.ku5rn.mongodb.net/${process.env.MONGO_NAME}?retryWrites=true&w=majority`
   )
   .then(() => {
     console.log("Server start at port " + PORT);
