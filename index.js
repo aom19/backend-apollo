@@ -1,33 +1,81 @@
 const express = require("express");
 const { graphqlHTTP } = require("express-graphql");
-const mongoose = require("mongoose");
-require("dotenv").config();
+const graphql = require("graphql");
+const userData = require("./data.json");
 
-const schema = require("./Schemas/index");
+const {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLInt,
+  GraphQLString,
+  GraphQLList,
+} = graphql;
 
 const app = express();
 
 const PORT = 4000;
 
+const userType = new GraphQLObjectType({
+  name: "User",
+  fields: () => ({
+    id: { type: GraphQLInt },
+    firstName: { type: GraphQLString },
+    lastName: { type: GraphQLString },
+    email: { type: GraphQLString },
+    password: { type: GraphQLString },
+  }),
+});
+
+const RootQuery = new GraphQLObjectType({
+  name: "RootQueryType",
+  fields: {
+    getAllUsers: {
+      type: new GraphQLList(userType),
+      resolve(parrent, args) {
+        return userData;
+      },
+    },
+  },
+});
+const Mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    createUser: {
+      type: userType,
+      args: {
+        firstName: { type: GraphQLString },
+        lastName: { type: GraphQLString },
+        email: { type: GraphQLString },
+        password: { type: GraphQLString },
+      },
+      resolve(parent, args) {
+        userData.push({
+          id: userData.length + 1,
+          firstName: args.firstName,
+          lastName: args.lastName,
+          email: args.email,
+          password: args.password,
+        });
+        return args;
+      },
+    },
+  },
+});
+
+const schema = new graphql.GraphQLSchema({
+  query: RootQuery,
+  mutation: Mutation,
+});
+
 app.use(
   "/graphql",
   graphqlHTTP({
     schema,
+
     graphiql: true,
   })
 );
 
-mongoose
-  .connect(
-    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.ku5rn.mongodb.net/${process.env.MONGO_NAME}?retryWrites=true&w=majority`
-    // `mongodb+srv://Anton:X09NKnZxyXOSIXxH@cluster0.ku5rn.mongodb.net/AtlasFreight?retryWrites=true&w=majority`
-    // `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.ku5rn.mongodb.net/${process.env.MONGO_NAME}?retryWrites=true&w=majority`
-  )
-  .then(() => {
-    console.log("Server start at port " + PORT);
-    console.log("MongoDB is connected");
-    app.listen(process.env.PORT || PORT);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+app.listen(PORT, () => {
+  console.log("server running on port : " + PORT);
+});
